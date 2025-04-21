@@ -1,4 +1,4 @@
-# K3s Cluster
+# K8s Playground
 
 This repository holds all information regarding how to setup a K3s cluster through Gnome Boxes.
 
