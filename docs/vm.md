@@ -3,7 +3,7 @@
 The VMs are created through Gnome Boxes.
 By default the VMs should be in the `virbr0` network interface, which in turn should be in `bridge` mode by default.
 
-## DNS masqing and Packet forwarding
+## DNS masqing and Packet forwarding for SSH
 
 It might happen however, that the `virbr0` interface has dns masquing and packet forwarding disabled by default.
 To check this run the following command:
@@ -42,6 +42,88 @@ sudo firewall-cmd --reload
 # restart daemon to apply changes
 sudo systemctl restart libvirtd
 ```
+
+## KVM/QEMU Virtual Machine Internet Connectivity Fix
+
+Virtual machines created with libvirt and QEMU/KVM can connect to the host through the virbr0 NAT interface but cannot access the internet.
+
+### Root Causes
+1. Missing MASQUERADE rule for the VM network in the POSTROUTING chain
+2. Missing FORWARD rules to allow traffic between VM network interface and external interface
+3. Default DROP policy on the FORWARD chain blocking inter-interface traffic
+
+### Solution
+
+#### 1. Add MASQUERADE rule for the VM network
+This rule performs NAT for traffic coming from the VM network and going out through the external interface.
+
+```bash
+# Replace wlp0s20f3 with your external network interface
+sudo iptables -t nat -A POSTROUTING -s 192.168.124.0/24 -o wlp0s20f3 -j MASQUERADE
+```
+
+#### 2. Add FORWARD rules to allow traffic between interfaces
+These rules allow traffic to flow from the VM network to the external network and vice versa.
+
+```bash
+# Allow outbound traffic from VM network to external network
+sudo iptables -I FORWARD 1 -i virbr0 -o wlp0s20f3 -j ACCEPT
+
+# Allow return traffic from external network back to VM network
+sudo iptables -I FORWARD 2 -i wlp0s20f3 -o virbr0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+```
+
+#### 3. Make the rules persistent using firewalld
+To ensure rules survive system reboots:
+
+```bash
+# Add persistent MASQUERADE rule
+sudo firewall-cmd --permanent --direct --add-rule ipv4 nat POSTROUTING 0 -s 192.168.124.0/24 -o wlp0s20f3 -j MASQUERADE
+
+# Add persistent FORWARD rules
+sudo firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -i virbr0 -o wlp0s20f3 -j ACCEPT
+sudo firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 1 -i wlp0s20f3 -o virbr0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# Apply the changes
+sudo firewall-cmd --reload
+```
+
+#### 4. Verify IP forwarding is enabled
+Make sure packet forwarding is enabled at the kernel level:
+
+```bash
+# Check current status
+sysctl net.ipv4.ip_forward
+
+# Enable if needed
+sudo sysctl -w net.ipv4.ip_forward=1
+
+# Make persistent
+echo "net.ipv4.ip_forward=1" | sudo tee /etc/sysctl.d/99-ipforward.conf
+```
+
+### Verification
+After applying these changes, test connectivity from within the VM:
+
+```bash
+# Test basic connectivity
+ping -c 4 8.8.8.8
+
+# Test DNS resolution
+ping -c 4 google.com
+
+# Check routing
+traceroute 8.8.8.8
+```
+
+If SELinux is causing issues, you may need to set it to permissive mode temporarily for testing:
+
+```bash
+sudo setenforce 0
+```
+
+Remember to set it back to enforcing mode after confirming the solution works.
+
 
 ## Give VMs a static IP
 
