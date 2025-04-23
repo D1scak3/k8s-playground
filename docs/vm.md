@@ -1,9 +1,34 @@
-# VM setup
+# VM Setup
+
+Follow along to setup the VMs, network, and dependencies:
+
+1. VM info
+2. Network
+3. Dependencies
 
 The VMs are created through Gnome Boxes.
 By default the VMs should be in the `virbr0` network interface, which in turn should be in `bridge` mode by default.
 
-## DNS masqing and Packet forwarding for SSH
+## 1. VM info
+
+Each VM has the following specs:
+
+|  VM   |       IP       |     Distro      | CPUs  |  RAM  | DISK  |
+| :---: | :------------: | :-------------: | :---: | :---: | :---: |
+| node1 | 192.168.164.11 | Rocky Linux 9.5 |   2   |  3Gb  | 25Gb  |
+| node2 | 192.168.164.12 | Rocky Linux 9.5 |   2   |  3Gb  | 25Gb  |
+| node3 | 192.168.164.13 | Rocky Linux 9.5 |   2   |  3Gb  | 25Gb  |
+
+After each installation, a `dnf update` is executed to update every package.
+
+## 2. Network
+
+In order for the VMs to reach the outside of your computer, you might need to configure the following components:
+
+1. `virbr0` network interface for ssh access to VMs
+2. `iptables` rules for outside access to VMs
+
+## 2.1 `virbr0` network interface
 
 It might happen however, that the `virbr0` interface has dns masquing and packet forwarding disabled by default.
 To check this run the following command:
@@ -48,6 +73,7 @@ sudo systemctl restart libvirtd
 Virtual machines created with libvirt and QEMU/KVM can connect to the host through the virbr0 NAT interface but cannot access the internet.
 
 ### Root Causes
+
 1. Missing MASQUERADE rule for the VM network in the POSTROUTING chain
 2. Missing FORWARD rules to allow traffic between VM network interface and external interface
 3. Default DROP policy on the FORWARD chain blocking inter-interface traffic
@@ -55,6 +81,7 @@ Virtual machines created with libvirt and QEMU/KVM can connect to the host throu
 ### Solution
 
 #### 1. Add MASQUERADE rule for the VM network
+
 This rule performs NAT for traffic coming from the VM network and going out through the external interface.
 
 ```bash
@@ -63,6 +90,7 @@ sudo iptables -t nat -A POSTROUTING -s 192.168.124.0/24 -o wlp0s20f3 -j MASQUERA
 ```
 
 #### 2. Add FORWARD rules to allow traffic between interfaces
+
 These rules allow traffic to flow from the VM network to the external network and vice versa.
 
 ```bash
@@ -74,6 +102,7 @@ sudo iptables -I FORWARD 2 -i wlp0s20f3 -o virbr0 -m state --state RELATED,ESTAB
 ```
 
 #### 3. Make the rules persistent using firewalld
+
 To ensure rules survive system reboots:
 
 ```bash
@@ -89,13 +118,14 @@ sudo firewall-cmd --reload
 ```
 
 #### 4. Verify IP forwarding is enabled
+
 Make sure packet forwarding is enabled at the kernel level:
 
 ```bash
 # Check current status
 sysctl net.ipv4.ip_forward
 
-# Enable if needed
+# Enable if needed value was 0
 sudo sysctl -w net.ipv4.ip_forward=1
 
 # Make persistent
@@ -113,7 +143,7 @@ ping -c 4 8.8.8.8
 ping -c 4 google.com
 
 # Check routing
-traceroute 8.8.8.8
+tracepath 8.8.8.8
 ```
 
 If SELinux is causing issues, you may need to set it to permissive mode temporarily for testing:
