@@ -6,7 +6,7 @@ Follow along to setup the VMs, network, and dependencies:
 2. Network
 3. Dependencies
 
-The VMs are created through Gnome Boxes.
+The VMs are created through `libvirt`.
 By default the VMs should be in the `virbr0` network interface, which in turn should be in `bridge` mode by default.
 
 ## 1. VM info
@@ -25,13 +25,65 @@ After each installation, a `dnf update` is executed to update every package.
 
 In order for the VMs to reach the outside of your computer, you might need to configure the following components:
 
-1. `virbr0` network interface for ssh access to VMs
-2. `iptables` rules for outside access to VMs
+1. Static IP
+2. `virbr0` network interface for ssh access to VMs
+3. Firewall rules for VMs to reach the internet
 
-## 2.1 `virbr0` network interface
+### 2.1 Static IP
 
-It might happen however, that the `virbr0` interface has dns masquing and packet forwarding disabled by default.
-To check this run the following command:
+By default, libvirt attributes a random IP from the `default` network, a network used by the `virbr0` interface.
+
+To attribute a static IP, you will need to configure the network to define a specific IP based on the MAC address of the VM.
+
+```bash
+# get the mac address of the VM
+sudo virsh  dumpxml  <vm-name> | grep 'mac address'
+
+# get list of networks
+# it should show the "default" network by default
+sudo virsh  net-list
+sudo virsh  net-edit  default
+```
+
+When editing the config, in the `dhcp` block, add the following lines (with your VMs MAC address and intended IP):
+
+```xml
+<network>
+  <name>default</name>
+  <uuid>0ca24bd7-40fa-4550-9c79-72954b356a52</uuid>
+  <forward mode='nat'/>
+  <bridge name='virbr0' stp='on' delay='0'/>
+  <mac address='52:54:00:ef:f2:21'/>
+  <ip address='192.168.124.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.124.2' end='192.168.124.254'/>
+      <!--From here-->
+      <host mac='52:54:00:df:f6:71' name='node1' ip='192.168.124.11'/> 
+      <host mac='52:54:00:d4:71:0e' name='node2' ip='192.168.124.12'/>
+      <host mac='52:54:00:d7:ae:12' name='node3' ip='192.168.124.13'/>
+      <!--To here-->
+    </dhcp>
+  </ip>
+</network>
+```
+Effectively, what we are doing is telling the DHCP server to assign specific IPs to the computers
+that hold specific MAC addresses, as it is not possible to tell a computer to have a specific 
+IP since IP attribution is made by the DHCP server.
+
+After updating the config, restart the VMs. 
+If the VMs still hold the old IP, shutdown all the VMs, destroy the network and recreate it:
+
+```bash
+sudo virsh net-destroy default
+sudo virsh net-start default
+```
+
+This should solve the problem.
+If by any change the problem stands, restart your pc.
+
+### 2.2 `virbr0` network interface
+
+In order  for the host to reach the guest, you will need to enable packet-forwarding and dns-masquing.
 
 ```bash
 sudo firewall-cmd --list-all --zone=libvirt
@@ -56,7 +108,7 @@ libvirt (active)
     rule priority="32767" reject
 ```
 
-To enable these settings run the following command:
+To enable these settings run the following commands:
 
 ```bash
 # change settings
@@ -68,32 +120,24 @@ sudo firewall-cmd --reload
 sudo systemctl restart libvirtd
 ```
 
-## KVM/QEMU Virtual Machine Internet Connectivity Fix
+After this, you should be able to ssh into the VMs (if you configured ssh in the VMs, Rocky can do that in the installation GUI).
 
-Virtual machines created with libvirt and QEMU/KVM can connect to the host through the virbr0 NAT interface but cannot access the internet.
+### 2.3 Firewall rules for VMs to reach the internet
 
-### Root Causes
+Virtual machines created with libvirt and QEMU/KVM can connect to the host through the `virbr0` NAT interface,
+however, the machines might be unable to access the internet.
 
-1. Missing MASQUERADE rule for the VM network in the POSTROUTING chain
-2. Missing FORWARD rules to allow traffic between VM network interface and external interface
-3. Default DROP policy on the FORWARD chain blocking inter-interface traffic
-
-### Solution
-
-#### 1. Add MASQUERADE rule for the VM network
+To resolve this follow along:
 
 This rule performs NAT for traffic coming from the VM network and going out through the external interface.
 
 ```bash
+# add masquerade rule for the VM network
+# this performs NAT for traffic coming from the VM and going out through the external interface
 # Replace wlp0s20f3 with your external network interface
 sudo iptables -t nat -A POSTROUTING -s 192.168.124.0/24 -o wlp0s20f3 -j MASQUERADE
-```
 
-#### 2. Add FORWARD rules to allow traffic between interfaces
-
-These rules allow traffic to flow from the VM network to the external network and vice versa.
-
-```bash
+# add forward rules to allow traffic between interfaces
 # Allow outbound traffic from VM network to external network
 sudo iptables -I FORWARD 1 -i virbr0 -o wlp0s20f3 -j ACCEPT
 
@@ -101,9 +145,7 @@ sudo iptables -I FORWARD 1 -i virbr0 -o wlp0s20f3 -j ACCEPT
 sudo iptables -I FORWARD 2 -i wlp0s20f3 -o virbr0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 ```
 
-#### 3. Make the rules persistent using firewalld
-
-To ensure rules survive system reboots:
+Make the rules permanent with `firewall-cmd`:
 
 ```bash
 # Add persistent MASQUERADE rule
@@ -116,8 +158,6 @@ sudo firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 1 -i wlp0s
 # Apply the changes
 sudo firewall-cmd --reload
 ```
-
-#### 4. Verify IP forwarding is enabled
 
 Make sure packet forwarding is enabled at the kernel level:
 
@@ -132,28 +172,18 @@ sudo sysctl -w net.ipv4.ip_forward=1
 echo "net.ipv4.ip_forward=1" | sudo tee /etc/sysctl.d/99-ipforward.conf
 ```
 
-### Verification
-After applying these changes, test connectivity from within the VM:
+Finally, after applying these changes, test connectivity from within the VM:
 
-```bash
-# Test basic connectivity
-ping -c 4 8.8.8.8
+  ```bash
+  # Test basic connectivity
+  ping -c 4 8.8.8.8
 
-# Test DNS resolution
-ping -c 4 google.com
+  # Test DNS resolution
+  ping -c 4 google.com
 
-# Check routing
-tracepath 8.8.8.8
-```
-
-If SELinux is causing issues, you may need to set it to permissive mode temporarily for testing:
-
-```bash
-sudo setenforce 0
-```
-
-Remember to set it back to enforcing mode after confirming the solution works.
-
+  # Check routing
+  tracepath 8.8.8.8
+  ```
 
 ## Give VMs a static IP
 
@@ -177,7 +207,7 @@ After retrieving the mac address of all the VMs, we will need to edit the
   <host mac="52:54:00:d7:ae:12" name="node3" ip="192.168.124.13"/>
 ```
 
-### Gnome Boxes
+### Gnome Boxes (WIP...)
 
 Gnome Boxes attributes a random IP address to the VMs inside the possible default range of the virbr0 interface.
 This is not ideal for Kuberentes nodes, a single change to the IP of a node can lead to catastrophic consequences in the cluster.
