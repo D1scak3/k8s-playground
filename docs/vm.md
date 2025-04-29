@@ -202,7 +202,7 @@ After retrieving the mac address of all the VMs, we will need to edit the
 
 
 ```xml
-  <host mac="52:54:00:df:f6:71" name="node1" ip="192.168.124.11"/>
+  <host mac="52:54:00:b0:50:22" name="node1" ip="192.168.124.11"/>
   <host mac="52:54:00:d4:71:0e" name="node2" ip="192.168.124.12"/>
   <host mac="52:54:00:d7:ae:12" name="node3" ip="192.168.124.13"/>
 ```

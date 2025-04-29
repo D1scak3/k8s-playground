@@ -19,8 +19,14 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.32.3+k3s1" INSTALL_K3S_EX
 
 # retrive token to add agent(worker) nodes in the future
 sudo cat /var/lib/rancher/k3s/server/node-token
+K1050818b98bca8fa27d7150f621388f2a017eecd7900cbec9f12babfc6f2f8f76e::server:2d53c5d60edba3eb77097b3bded5a189
 
-# retrive kubeconfig
+# set kubeconfig for local access inside the VM
+sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kube/config
+chmod 600 ~/.kube/config
+
+# retrive kubeconfig for external access
+# don't forget to change the IP to the VM IP
 sudo cat /etc/rancher/k3s/k3s.yaml
 ```
 
