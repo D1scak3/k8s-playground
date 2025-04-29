@@ -79,7 +79,7 @@ sudo virsh net-start default
 ```
 
 This should solve the problem.
-If by any change the problem stands, restart your pc.
+If by any chance the problem stands, restart your pc.
 
 ### 2.2 `virbr0` network interface
 
@@ -184,39 +184,3 @@ Finally, after applying these changes, test connectivity from within the VM:
   # Check routing
   tracepath 8.8.8.8
   ```
-
-## Give VMs a static IP
-
-### Libvirt
-
-Libvirt also attributes a random IP address to the VMs inside the `default` range of the birbr0 interface.
-
-To overcome this, a new static IP will be attributed to each VM:
-
-```bash
-# retrive the mac address of each VM using the VM's name
-sudo virsh dumpxml <vm-name> | grep "mac address"
-```
-
-After retrieving the mac address of all the VMs, we will need to edit the 
-
-
-```xml
-  <host mac="52:54:00:b0:50:22" name="node1" ip="192.168.124.11"/>
-  <host mac="52:54:00:d4:71:0e" name="node2" ip="192.168.124.12"/>
-  <host mac="52:54:00:d7:ae:12" name="node3" ip="192.168.124.13"/>
-```
-
-### Gnome Boxes (WIP...)
-
-Gnome Boxes attributes a random IP address to the VMs inside the possible default range of the virbr0 interface.
-This is not ideal for Kuberentes nodes, a single change to the IP of a node can lead to catastrophic consequences in the cluster.
-
-To overcome this, a new static IP will be given to the VMs.
-
-```bash
-# retrive the current IPs and MAC address of the VMs
-sudo cat /var/lib/libvirt/dnsmasq/virbr0.status
-
-# TODO
-```
