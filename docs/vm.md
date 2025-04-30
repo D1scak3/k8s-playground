@@ -37,12 +37,12 @@ To attribute a static IP, you will need to configure the network to define a spe
 
 ```bash
 # get the mac address of the VM
-sudo virsh  dumpxml  <vm-name> | grep 'mac address'
+sudo virsh dumpxml <vm-name> | grep 'mac address'
 
 # get list of networks
 # it should show the "default" network by default
-sudo virsh  net-list
-sudo virsh  net-edit  default
+sudo virsh net-list
+sudo virsh net-edit  default
 ```
 
 When editing the config, in the `dhcp` block, add the following lines (with your VMs MAC address and intended IP):
