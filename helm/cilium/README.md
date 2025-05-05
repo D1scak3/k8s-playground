@@ -12,9 +12,10 @@ kubectl create ns cilium
 helm repo add cilium https://helm.cilium.io/
 
 # install helm in the cilium namespace
-helm install cilium cilium/cilium --version 1.17.3 \
+helm install cilium cilium/cilium \
    --namespace cilium \
-   --set operator.replicas=1
+   --values helm/cilium/values.yaml \
+   --version 1.17.3
 
 # install cilium cli
 CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)

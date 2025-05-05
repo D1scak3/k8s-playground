@@ -1,5 +1,7 @@
 # Traefik
 
+# Install
+
 ```bash
 # add helm repo
 helm repo add traefik https://traefik.github.io/charts
@@ -8,5 +10,14 @@ helm repo add traefik https://traefik.github.io/charts
 kubectl create ns traefik
 
 # install traefik
-helm install traefik traefik/traefik --version 35.2.0 --namespace traefik
+helm install traefik traefik/traefik \
+    --namespace traefik \
+    --values helm/traefik/values.yaml \
+    --version 35.2.0
+```
+
+## Uninstall
+
+```bash
+helm uninstall traefik traefik/traefik --namespace traefik
 ```
