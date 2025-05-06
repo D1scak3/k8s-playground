@@ -17,7 +17,7 @@ helm repo update
 kubectl create ns prometheus
 
 # install helm
-helm install kube-prometheus prometheus-community/kube-prometheus-stack \
+helm install prometheus prometheus-community/kube-prometheus-stack \
     --namespace prometheus \
     --values helm/prometheus/values.yaml \
     --version 71.1.0
@@ -27,7 +27,7 @@ helm install kube-prometheus prometheus-community/kube-prometheus-stack \
 
 ```bash
 # remove helm
-helm uninstall kube-prometheus prometheus-community/kube-prometheus-stack \
+helm uninstall prometheus prometheus-community/kube-prometheus-stack \
     --namespace prometheus
 
 # delete the leftover CRDs
