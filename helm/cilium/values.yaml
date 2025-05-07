@@ -1234,17 +1234,23 @@ hubble:
     #
     #   --set hubble.metrics.enabled="{dns:query;ignoreAAAA,drop,tcp,flow,icmp,http}"
     #
+    # DO NOT ENABLE http and httpv2 AT THE SAME TIME
+    # https://docs.cilium.io/en/stable/observability/metrics/#http
+    # https://github.com/cilium/cilium/issues/27506
     enabled:
       - dns
       - drop
       - tcp
       - flow
       - icmp
-      - http
+      # - http
       - port-distribution
+      - "httpV2:sourceContext=workload-name|pod-name|reserved-identity;destinationContext=workload-name|pod-name|reserved-identity;labelsContext=source_namespace,destination_namespace,traffic_direction"
+      - "kafka:sourceContext=workload-name|pod-name|reserved-identity;destinationContext=workload-name|pod-name|reserved-identity;labelsContext=source_namespace,destination_namespace,traffic_direction"
+
 
     # -- Enables exporting hubble metrics in OpenMetrics format.
-    enableOpenMetrics: false
+    enableOpenMetrics: true
     # -- Configure the port the hubble metric server listens on.
     port: 9965
     tls:
@@ -1284,7 +1290,7 @@ hubble:
       # -- Create ServiceMonitor resources for Prometheus Operator.
       # This requires the prometheus CRDs to be available.
       # ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml)
-      enabled: false
+      enabled: true
       # -- Labels to add to ServiceMonitor hubble
       labels: {}
       # -- Annotations to add to ServiceMonitor hubble
@@ -1318,12 +1324,12 @@ hubble:
     # grafana can import dashboards based on the label and value
     # ref: https://github.com/grafana/helm-charts/tree/main/charts/grafana#sidecar-for-dashboards
     dashboards:
-      enabled: false
+      enabled: true
       label: grafana_dashboard
       # @schema
       # type: [null, string]
       # @schema
-      namespace: ~
+      namespace: "lgtm"
       labelValue: "1"
       annotations: {}
     # Dynamic metrics  may be reconfigured without a need of agent restarts.

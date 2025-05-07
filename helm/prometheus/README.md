@@ -20,7 +20,7 @@ kubectl create ns prometheus
 helm install prometheus prometheus-community/kube-prometheus-stack \
     --namespace prometheus \
     --values helm/prometheus/values.yaml \
-    --version 71.1.0
+    --version 71.1.01
 ```
 
 ## Uninstalling

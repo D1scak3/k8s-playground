@@ -3122,7 +3122,9 @@ prometheus:
     ## The remote_write spec configuration for Prometheus.
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#remotewritespec
     remoteWrite:
-      - url: "http://lgtm-mimir-ingester.lgtm.svc.cluster.local:8080"
+      # mimir endpoint for prometheus to write metrics to
+      # https://grafana.com/docs/mimir/latest/references/http-api/#remote-write
+      - url: "http://lgtm-mimir-nginx.lgtm.svc.cluster.local/api/v1/push"
     # - url: http://remote1/push
     ## additionalRemoteWrite is appended to remoteWrite
     additionalRemoteWrite: []

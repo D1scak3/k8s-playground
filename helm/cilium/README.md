@@ -34,7 +34,10 @@ cilium status --wait -n cilium
 cilium connectivity test -n cilium
 ```
 
-## Hubble Relay
+### Hubble Relay
+
+Hubble is already enabled in the `values.yaml` file, if you are not using it,
+you can enable Hubble through this command:
 
 ```bash
 helm upgrade cilium cilium/cilium \
@@ -45,6 +48,12 @@ helm upgrade cilium cilium/cilium \
    --set hubble.ui.enabled=true
 ```
 
-## Cluster Mesh
+### Cluster Mesh
 
 Maybe in the future? Who knows...
+
+## Uninstalling
+
+```bash
+helm uninstall cilium -n cilium
+```
