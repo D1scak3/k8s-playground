@@ -13,6 +13,32 @@ grafana:
   plugins:
     - isovalent-hubble-datasource # https://grafana.com/grafana/plugins/isovalent-hubble-datasource/
 
+  # https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml#L799
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: "hubble"
+          orgId: 1
+          folder: "hubble"
+          folder Uid: ""
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 10
+          allowUpdates: true
+          options:
+            path: /var/lib/grafana/dashboards/hubble
+            foldersFromFilesStructure: true
+
+  # https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml#L855
+  # use provider name as key and configmap name as value
+  #
+  # dashboardConfigMaps:
+  #   provider-name: configmap-name
+  #
+  dashboardsConfigMaps:
+    hubble: "hubble-dashboard"
+
   # -- Grafana data sources config. Connects to all three by default
   datasources:
     datasources.yaml:
