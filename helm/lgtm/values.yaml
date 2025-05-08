@@ -13,22 +13,88 @@ grafana:
   plugins:
     - isovalent-hubble-datasource # https://grafana.com/grafana/plugins/isovalent-hubble-datasource/
 
+  # https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml#L956
+  # the sidecar, according to the docs, does not work with the dataousrces parameter
+  # but for some reason it is working, not sure why
+  # probably because there are no datasources defined in configmap format
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard            # ConfigMaps with this label will be discovered
+      searchNamespace: ALL                # Search in all namespaces
+
   # https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml#L799
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-        - name: "hubble"
-          orgId: 1
-          folder: "hubble"
-          folder Uid: ""
-          type: file
-          disableDeletion: false
-          updateIntervalSeconds: 10
-          allowUpdates: true
-          options:
-            path: /var/lib/grafana/dashboards/hubble
-            foldersFromFilesStructure: true
+  # can only import dashboards from configmaps that are present in it's own namespace
+  # dashboardProviders:
+  #   dashboardproviders.yaml:
+  #     apiVersion: 1
+  #     providers:
+  #       - name: "cilium"
+  #         orgId: 1
+  #         folder: "cilium"
+  #         folder Uid: ""
+  #         type: file
+  #         disableDeletion: false
+  #         updateIntervalSeconds: 10
+  #         allowUpdates: true
+  #         options:
+  #           path: /var/lib/grafana/dashboards/cilium
+  #           foldersFromFilesStructure: true
+  #       - name: "cilium-operator"
+  #         orgId: 1
+  #         folder: "cilium"
+  #         folder Uid: ""
+  #         type: file
+  #         disableDeletion: false
+  #         updateIntervalSeconds: 10
+  #         allowUpdates: true
+  #         options:
+  #           path: /var/lib/grafana/dashboards/cilium
+  #           foldersFromFilesStructure: true
+  #       - name: "hubble"
+  #         orgId: 2
+  #         folder: "hubble"
+  #         folder Uid: ""
+  #         type: file
+  #         disableDeletion: false
+  #         updateIntervalSeconds: 10
+  #         allowUpdates: true
+  #         options:
+  #           path: /var/lib/grafana/dashboards/hubble
+  #           foldersFromFilesStructure: true
+  #       - name: "hubble-dns"
+  #         orgId: 2
+  #         folder: "hubble"
+  #         folder Uid: ""
+  #         type: file
+  #         disableDeletion: false
+  #         updateIntervalSeconds: 10
+  #         allowUpdates: true
+  #         options:
+  #           path: /var/lib/grafana/dashboards/hubble
+  #           foldersFromFilesStructure: true
+  #       - name: "hubble-l7-http"
+  #         orgId: 2
+  #         folder: "hubble"
+  #         folder Uid: ""
+  #         type: file
+  #         disableDeletion: false
+  #         updateIntervalSeconds: 10
+  #         allowUpdates: true
+  #         options:
+  #           path: /var/lib/grafana/dashboards/hubble
+  #           foldersFromFilesStructure: true
+  #       - name: "hubble-network"
+  #         orgId: 2
+  #         folder: "hubble"
+  #         folder Uid: ""
+  #         type: file
+  #         disableDeletion: false
+  #         updateIntervalSeconds: 10
+  #         allowUpdates: true
+  #         options:
+  #           path: /var/lib/grafana/dashboards/hubble
+  #           foldersFromFilesStructure: true
 
   # https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml#L855
   # use provider name as key and configmap name as value
@@ -36,8 +102,16 @@ grafana:
   # dashboardConfigMaps:
   #   provider-name: configmap-name
   #
-  dashboardsConfigMaps:
-    hubble: "hubble-dashboard"
+  # can only import configmaps from it's own namespace
+  #
+  # dashboardsConfigMaps:
+  #   cilium: "cilium-dashboard"
+  #   cilium-operator: "cilium-operator-dashboard"
+  #   hubble: "hubble-dashboard"
+  #   hubble-dns: "hubble-dns-namespace"
+  #   hubble-l7-http: "hubble-l7-http-metrics-by-workload"
+  #   hubble-network: "hubble-network-overview-namespace"
+  
 
   # -- Grafana data sources config. Connects to all three by default
   datasources:
