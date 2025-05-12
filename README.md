@@ -7,11 +7,12 @@ when compared to more popular solutions (Minikube, Kind, etc...).
 
 ## Index
 
-Main topics for cluster creation:
+Main topics for cluster creation and service deployment:
 
 - [Vm setup](/docs/vm.md)
 - [K3s cluster creation](/docs/k3s.md)
 - [K3s uninstallation](/docs/uninstall.md)
+- [ArgoCD Autopilot](/docs/argocd.md)
 
 
 ## Cluster specs
