@@ -57,3 +57,32 @@ Maybe in the future? Who knows...
 ```bash
 helm uninstall cilium -n cilium
 ```
+
+## Upgrading/Updating 
+
+After upgrading or updating Cilium, it is recommended to restart all deployments and daemonsets in order to apply the new configs:
+
+```bash
+kubectl -n cilium rollout restart deployment/cilium-operator
+
+kubectl -n cilium rollout restart ds/cilium
+```
+
+## Ingress setup
+
+Cilium has an Ingress implementation uses the original Kubernetes Ingress resource, with extra functionalities and complexity.
+
+To enable and use the Cilium Ingress as the default IngressClass, it is necessary to configure the following values in the [/helm/cilium/values.yaml](/helm/cilium/values.yaml) file:
+
+```yaml
+...
+ingressController:
+   enabled: true
+   default: true
+   loadbalancerMode: shared
+...
+```
+
+These values enable Cilium Ingress. A unique `LoadBalancer` type service is created in order to redirect incoming traffic to the desired service.
+
+This approach is simpler and easier. For more complex and bigger setups, it is recommended to use the ``ingressController.loadbalancerMode=dedicated`. For more information check the official [docs](https://docs.cilium.io/en/stable/network/servicemesh/ingress/).
