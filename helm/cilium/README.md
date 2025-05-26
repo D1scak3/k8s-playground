@@ -86,3 +86,11 @@ ingressController:
 These values enable Cilium Ingress. A unique `LoadBalancer` type service is created in order to redirect incoming traffic to the desired service.
 
 This approach is simpler and easier. For more complex and bigger setups, it is recommended to use the ``ingressController.loadbalancerMode=dedicated`. For more information check the official [docs](https://docs.cilium.io/en/stable/network/servicemesh/ingress/).
+
+### Available Ingresses
+
+All DNS names were defined locally on `/etc/hosts` file.
+
+| Service |          DNS          |
+| :-----: | :-------------------: |
+| Grafana | grafana.playground.io |
