@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: lgtm
+
+spec:
+  ingressClassName: cilium
+  rules:
+    - host: "grafana.playground.io"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lgtm-grafana
+                port:
+                  number: 80

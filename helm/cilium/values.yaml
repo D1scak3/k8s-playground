@@ -898,15 +898,15 @@ envoyConfig:
 ingressController:
   # -- Enable cilium ingress controller
   # This will automatically set enable-envoy-config as well.
-  enabled: false
+  enabled: true
   # -- Set cilium ingress controller to be the default ingress controller
   # This will let cilium ingress controller route entries without ingress class set
-  default: false
+  default: true
   # -- Default ingress load balancer mode
   # Supported values: shared, dedicated
   # For granular control, use the following annotations on the ingress resource:
   # "ingress.cilium.io/loadbalancer-mode: dedicated" (or "shared").
-  loadbalancerMode: dedicated
+  loadbalancerMode: shared
   # -- Enforce https for host having matching TLS host in Ingress.
   # Incoming traffic to http listener will return 308 http error code with respective location in header.
   enforceHttps: true
@@ -2254,7 +2254,7 @@ loadBalancer:
     # Applicable values:
     #   - envoy: Enable L7 load balancing via envoy proxy. This will automatically set enable-envoy-config as well.
     #   - disabled: Disable L7 load balancing by way of service annotation.
-    backend: disabled
+    backend: envoy
     # -- List of ports from service to be automatically redirected to above backend.
     # Any service exposing one of these ports will be automatically redirected.
     # Fine-grained control can be achieved by using the service annotation.
@@ -2267,9 +2267,9 @@ loadBalancer:
 # -- Configure N-S k8s service loadbalancing
 nodePort:
   # -- Enable the Cilium NodePort service implementation.
-  enabled: false
+  enabled: true
   # -- Port range to use for NodePort services.
-  # range: "30000,32767"
+  range: "30000,32767"
 
   # @schema
   # type: [null, string, array]
