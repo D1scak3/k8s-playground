@@ -3,7 +3,8 @@ kind: Ingress
 metadata:
   name: grafana-ingress
   namespace: lgtm
-
+  annotations:
+    cert-manager.io/cluster-issuer: my-ca-issuer
 spec:
   ingressClassName: cilium
   rules:
@@ -17,3 +18,8 @@ spec:
                 name: lgtm-grafana
                 port:
                   number: 80
+
+  tls:
+    - hosts:
+      - grafana.playground.io
+      secretName: grafana-secret
