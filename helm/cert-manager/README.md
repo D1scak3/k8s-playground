@@ -35,5 +35,6 @@ Cert Manager was configured to self-sign every certificate that the cluster will
 
 The [manifests](/helm/cert-manager/manifests/) folder holds the CRs which will enable the self-signing of certificates:
 
-- the "selfsigned-issuer" `ClusterIssuer` is used to **issue the Root CA Certificate**;
+- the "selfsigned-issuer" `ClusterIssuer` is used to **issue the Root CA Certificate**. Somewhat of a "bootstrap issuer";
+- the "my-selfsigned-ca" `Certificate` is the **Root CA Certificate**;
 - the "my-ca-issuer" `ClusterIssuer` is used to isse but also **sign certificates using the newly created Root CA Certificate**, which is what will be used for future certifiaces cluster-wide;
