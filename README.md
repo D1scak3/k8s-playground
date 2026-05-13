@@ -14,7 +14,6 @@ Main topics for cluster creation and service deployment:
 - [K3s uninstallation](/docs/uninstall.md)
 - [ArgoCD Autopilot](/docs/argocd.md)
 
-
 ## Cluster specs
 
 ### Nodes
