@@ -15,9 +15,9 @@ Each VM has the following specs:
 
 |  VM   |       IP       |     Distro      | CPUs  |  RAM  | DISK  |
 | :---: | :------------: | :-------------: | :---: | :---: | :---: |
-| node1 | 192.168.164.11 | Rocky Linux 9.5 |   2   |  3Gb  | 25Gb  |
-| node2 | 192.168.164.12 | Rocky Linux 9.5 |   2   |  3Gb  | 25Gb  |
-| node3 | 192.168.164.13 | Rocky Linux 9.5 |   2   |  3Gb  | 25Gb  |
+| node1 | 192.168.124.11 | Rocky Linux 9.5 |   2   |  3Gb  | 25Gb  |
+| node2 | 192.168.124.12 | Rocky Linux 9.5 |   2   |  3Gb  | 25Gb  |
+| node3 | 192.168.124.13 | Rocky Linux 9.5 |   2   |  3Gb  | 25Gb  |
 
 After each installation, a `dnf update` is executed to update every package.
 
